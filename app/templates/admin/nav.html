@@ -1,0 +1,44 @@
+<div class="bg-white border-bottom shadow-sm mb-4">
+    <div class="container py-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark-brand text-white px-3 py-2 rounded-pill fw-bold">
+                    <i class="bi bi-shield-lock me-1 text-primary-brand"></i> ADMIN CONSOLE
+                </span>
+                <span class="text-secondary small fw-medium">Managing Rento platform as {{ current_user.name }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.vehicle_add') }}" class="btn btn-sm btn-primary-brand fw-bold px-3 py-2 rounded-pill">
+                    <i class="bi bi-plus-circle me-1"></i> Add Vehicle
+                </a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-dark fw-semibold px-3 py-2 rounded-pill">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Public Site
+                </a>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mt-3 gap-2">
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint in ['admin.dashboard'] %}active bg-dark-brand text-white fw-bold{% else %}text-secondary fw-semibold{% endif %} rounded-pill px-3 py-2" href="{{ url_for('admin.dashboard') }}">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.vehicle') %}active bg-dark-brand text-white fw-bold{% else %}text-secondary fw-semibold{% endif %} rounded-pill px-3 py-2" href="{{ url_for('admin.vehicles') }}">
+                    <i class="bi bi-car-front me-1"></i> Vehicles
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.user') %}active bg-dark-brand text-white fw-bold{% else %}text-secondary fw-semibold{% endif %} rounded-pill px-3 py-2" href="{{ url_for('admin.users') }}">
+                    <i class="bi bi-people me-1"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.booking') %}active bg-dark-brand text-white fw-bold{% else %}text-secondary fw-semibold{% endif %} rounded-pill px-3 py-2" href="{{ url_for('admin.bookings') }}">
+                    <i class="bi bi-calendar-check me-1"></i> Bookings
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

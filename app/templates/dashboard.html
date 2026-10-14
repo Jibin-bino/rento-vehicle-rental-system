@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Rento{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-3">
+    <!-- Header Profile Bar -->
+    <div class="bg-white rounded-4 p-4 p-md-5 mb-5 shadow-sm border border-light">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 64px; height: 64px; background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); font-size: 1.75rem;">
+                    {{ user.name[:1]|upper }}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h2 class="fw-bold text-dark mb-0">{{ user.name }}</h2>
+                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">User ID #{{ user.id }}</span>
+                        {% if user.role == 'ADMIN' %}
+                            <span class="badge bg-dark rounded-pill px-3 py-1 small">Admin</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-secondary mb-0 mt-1 small">
+                        <i class="bi bi-envelope me-1"></i> {{ user.email }}
+                        {% if user.phone %}
+                            <span class="mx-2">&bull;</span>
+                            <i class="bi bi-telephone me-1"></i> {{ user.phone }}
+                        {% endif %}
+                        <span class="mx-2">&bull;</span>
+                        <i class="bi bi-calendar-heart me-1"></i> Member since {{ user.created_at.strftime('%B %Y') }}
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary-brand px-4 py-2 fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i> Rent a Vehicle
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Cards Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Bookings</span>
+                    <div class="rounded-3 p-2 bg-orange-subtle text-primary-brand d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(249, 115, 22, 0.1);">
+                        <i class="bi bi-calendar-event fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ total_bookings }}</h2>
+                <span class="text-muted small">Lifetime rental requests</span>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Active / Confirmed</span>
+                    <div class="rounded-3 p-2 text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(34, 197, 94, 0.1);">
+                        <i class="bi bi-check-circle fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ active_bookings }}</h2>
+                <span class="text-success small fw-medium">Ready or ongoing rides</span>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Pending</span>
+                    <div class="rounded-3 p-2 text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(245, 158, 11, 0.1);">
+                        <i class="bi bi-clock-history fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ pending_bookings }}</h2>
+                <span class="text-warning small fw-medium">Awaiting payment / confirmation</span>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Spent</span>
+                    <div class="rounded-3 p-2 text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(59, 130, 246, 0.1);">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">₹{{ "%.0f"|format(total_spent) }}</h2>
+                <span class="text-muted small">Confirmed & completed spend</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings Section -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+        <div class="card-header bg-white border-0 p-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h4 class="fw-bold text-dark mb-1">Recent Bookings</h4>
+                <p class="text-muted small mb-0">Showing latest booking activity for user account #{{ user.id }}</p>
+            </div>
+            <a href="{{ url_for('booking.index') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
+                View All My Bookings ({{ total_bookings }}) <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="card-body p-4 pt-2">
+            {% if recent_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="text-muted border-bottom">
+                            <tr>
+                                <th class="border-0 py-3">Booking ID</th>
+                                <th class="border-0 py-3">Vehicle</th>
+                                <th class="border-0 py-3">Rental Dates</th>
+                                <th class="border-0 py-3">Total Amount</th>
+                                <th class="border-0 py-3">Booking Status</th>
+                                <th class="border-0 py-3">Payment Status</th>
+                                <th class="border-0 py-3 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in recent_bookings %}
+                            <tr>
+                                <td class="fw-bold text-dark">#{{ b.id }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div>
+                                            <a href="{{ url_for('vehicle.details', id=b.vehicle.id) }}" class="fw-semibold text-dark text-decoration-none">
+                                                {{ b.vehicle.name }}
+                                            </a>
+                                            <div class="text-muted small">{{ b.vehicle.brand }} &bull; {{ b.vehicle.model }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-medium text-dark">{{ b.start_date.strftime('%b %d, %Y') }}</span>
+                                    <span class="text-muted small d-block">to {{ b.return_date.strftime('%b %d, %Y') }} ({{ b.total_days }}d)</span>
+                                </td>
+                                <td class="fw-bold text-dark">₹{{ "%.0f"|format(b.total_amount) }}</td>
+                                <td>
+                                    {% set b_badge = 'warning' %}
+                                    {% if b.booking_status in ['Confirmed', 'Active'] %}{% set b_badge = 'success' %}{% endif %}
+                                    {% if b.booking_status == 'Cancelled' %}{% set b_badge = 'danger' %}{% endif %}
+                                    {% if b.booking_status == 'Completed' %}{% set b_badge = 'secondary' %}{% endif %}
+                                    <span class="badge bg-{{ b_badge }} rounded-pill px-3 py-2 fw-medium">{{ b.booking_status }}</span>
+                                </td>
+                                <td>
+                                    {% set p_badge = 'warning' %}
+                                    {% if b.payment_status == 'Paid' %}{% set p_badge = 'success' %}{% endif %}
+                                    {% if b.payment_status == 'Refunded' %}{% set p_badge = 'info' %}{% endif %}
+                                    {% if b.payment_status == 'Cancelled' %}{% set p_badge = 'secondary' %}{% endif %}
+                                    {% if b.payment_status == 'Failed' %}{% set p_badge = 'danger' %}{% endif %}
+                                    <span class="badge bg-{{ p_badge }} rounded-pill px-3 py-2 fw-medium">{{ b.payment_status }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2 align-items-center">
+                                        <a href="{{ url_for('booking.details', id=b.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                                            Details
+                                        </a>
+                                        {% if b.booking_status in ['Pending', 'Confirmed'] %}
+                                            <form method="POST" action="{{ url_for('booking.cancel', id=b.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel booking #{{ b.id }}?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Cancel booking">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-secondary fw-semibold">No bookings found for your account.</h5>
+                    <p class="text-muted mb-4">Start your journey today by booking your first vehicle!</p>
+                    <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary-brand px-4 py-2 fw-bold">Explore Fleet</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

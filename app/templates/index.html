@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block nav_class %}position-absolute w-100 z-3 custom-nav-overlay{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section" style="background-image: url('{{ url_for('static', filename='images/rento-hero.jpg') }}');">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+        <div class="hero-brand">RENTO</div>
+        <h1 class="hero-title">RENT. RIDE. REPEAT.</h1>
+        <p class="hero-subtitle">Find the perfect vehicle for your journey.</p>
+        
+        <div class="search-container text-start">
+            <form class="row g-3 align-items-end" action="{{ url_for('vehicle.index') }}" method="GET">
+                <div class="col-md-3">
+                    <label for="pickup" class="form-label fw-bold small text-uppercase">Pickup Location</label>
+                    <select id="pickup" name="location" class="form-select p-3 border-0">
+                        <option value="" selected>Select Location</option>
+                        <option value="Kochi">Kochi</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Delhi">Delhi</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label fw-bold small text-uppercase">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control p-3 border-0">
+                </div>
+                <div class="col-md-3">
+                    <label for="return_date" class="form-label fw-bold small text-uppercase">Return Date</label>
+                    <input type="date" id="return_date" name="return_date" class="form-control p-3 border-0">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary-brand w-100 p-3 fw-bold fs-5">SEARCH</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="container my-5 py-4">
+    <h3 class="fw-bold mb-4">Browse by Category</h3>
+    <div class="row g-4 text-center">
+        <!-- Cars -->
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded shadow-sm border h-100">
+                <i class="bi bi-car-front fs-1 text-primary-brand"></i>
+                <h5 class="mt-3 fw-bold">Cars</h5>
+                <p class="text-muted small">Sedan &bull; SUV</p>
+            </div>
+        </div>
+        <!-- Bikes -->
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded shadow-sm border h-100">
+                <i class="bi bi-bicycle fs-1 text-primary-brand"></i>
+                <h5 class="mt-3 fw-bold">Bikes</h5>
+                <p class="text-muted small">Scooter &bull; Sports Bike</p>
+            </div>
+        </div>
+        <!-- Others -->
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded shadow-sm border h-100">
+                <i class="bi bi-truck fs-1 text-primary-brand"></i>
+                <h5 class="mt-3 fw-bold">Others</h5>
+                <p class="text-muted small">Van &bull; Traveller</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Vehicles Section -->
+<section class="container my-5 pb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Featured Vehicles</h3>
+            <p class="text-secondary mb-0">Explore our top rental choices for your next journey.</p>
+        </div>
+        <a href="{{ url_for('vehicle.index') }}" class="btn btn-link text-primary-brand text-decoration-none fw-semibold">View All <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-4">
+        {% for vehicle in featured_vehicles %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card vehicle-card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column bg-white">
+                <!-- Featured Vehicle Image Container (220px desktop / 200px tablet / 180px mobile) -->
+                <div class="featured-image-container position-relative">
+                    {% if vehicle.image %}
+                        <img src="{{ url_for('static', filename='images/vehicles/' + vehicle.image) }}" 
+                             alt="{{ vehicle.name }}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="featured-fallback-container" style="display: none;">
+                            <i class="bi bi-car-front"></i>
+                            <span>Image unavailable</span>
+                        </div>
+                    {% else %}
+                        <div class="featured-fallback-container">
+                            <i class="bi bi-car-front"></i>
+                            <span>Image unavailable</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Card Content -->
+                <div class="card-body p-4 d-flex flex-column flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-dark mb-0">{{ vehicle.name }}</h5>
+                        <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">{{ vehicle.category.name if vehicle.category else 'Vehicle' }}</span>
+                    </div>
+                    <p class="text-secondary small mb-3">{{ vehicle.brand }}</p>
+                    
+                    <div class="d-flex justify-content-between mt-auto align-items-center pt-2">
+                        <h5 class="text-primary-brand fw-bold mb-0">₹{{ "%.0f"|format(vehicle.price_per_day) }}<span class="fs-6 text-muted fw-normal">/day</span></h5>
+                        <a href="{{ url_for('vehicle.details', id=vehicle.id) }}" class="btn btn-outline-dark btn-sm px-3 fw-medium">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">No featured vehicles currently available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+

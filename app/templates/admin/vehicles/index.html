@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Vehicles - Rento Admin{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Vehicles Fleet</h2>
+            <p class="text-secondary small mb-0">Add, edit, inspect, and remove vehicles from the rental inventory</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.vehicle_add') }}" class="btn btn-primary-brand fw-bold px-4 py-2 rounded-pill">
+                <i class="bi bi-plus-lg me-1"></i> Add New Vehicle
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light p-3 p-md-4 mb-4">
+        <form method="GET" action="{{ url_for('admin.vehicles') }}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-semibold">Search Fleet</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ search or '' }}" class="form-control bg-light border-0" placeholder="Search by name, brand, model, or city...">
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label text-muted small fw-semibold">Category</label>
+                <select name="category_id" class="form-select bg-light border-0">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label text-muted small fw-semibold">Status</label>
+                <select name="status" class="form-select bg-light border-0">
+                    <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Statuses</option>
+                    <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Maintenance" {% if selected_status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                    <option value="Inactive" {% if selected_status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark fw-bold w-100 py-2">Filter</button>
+                {% if search or selected_category or selected_status %}
+                    <a href="{{ url_for('admin.vehicles') }}" class="btn btn-light border py-2" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Vehicles Table -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+        <div class="table-responsive p-3 p-md-4">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="text-muted border-bottom small">
+                    <tr>
+                        <th class="border-0 pb-3">Vehicle</th>
+                        <th class="border-0 pb-3">Category</th>
+                        <th class="border-0 pb-3">Location</th>
+                        <th class="border-0 pb-3">Specs</th>
+                        <th class="border-0 pb-3">Rate / Day</th>
+                        <th class="border-0 pb-3">Status</th>
+                        <th class="border-0 pb-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% if vehicles %}
+                        {% for v in vehicles %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if v.image %}
+                                        <img src="{{ url_for('static', filename='images/vehicles/' + v.image) }}" alt="{{ v.name }}" class="rounded-3 object-fit-cover shadow-sm border" style="width: 54px; height: 42px;" onerror="this.style.display='none';">
+                                    {% else %}
+                                        <div class="rounded-3 bg-light d-flex align-items-center justify-content-center text-muted" style="width: 54px; height: 42px;">
+                                            <i class="bi bi-car-front fs-5"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <a href="{{ url_for('vehicle.details', id=v.id) }}" class="fw-bold text-dark text-decoration-none" target="_blank">
+                                            {{ v.name }}
+                                        </a>
+                                        <div class="text-muted small">{{ v.brand }} &bull; {{ v.model }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2 py-1">{{ v.category.name if v.category else 'N/A' }}</span>
+                            </td>
+                            <td>
+                                <span class="text-dark small"><i class="bi bi-geo-alt text-primary-brand me-1"></i>{{ v.location }}</span>
+                            </td>
+                            <td class="small text-muted">
+                                <div>{{ v.seats }} Seats &bull; {{ v.fuel_type }}</div>
+                                <div>{{ v.transmission }}</div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">₹{{ "%.0f"|format(v.price_per_day) }}</span>
+                            </td>
+                            <td>
+                                {% set s_badge = 'success' %}
+                                {% if v.status == 'Maintenance' %}{% set s_badge = 'warning' %}{% endif %}
+                                {% if v.status == 'Inactive' %}{% set s_badge = 'secondary' %}{% endif %}
+                                <span class="badge bg-{{ s_badge }} rounded-pill px-3 py-1 small">{{ v.status }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2 align-items-center">
+                                    <a href="{{ url_for('admin.vehicle_edit', id=v.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2" data-bs-toggle="modal" data-bs-target="#deleteVehicleModal{{ v.id }}" title="Delete Vehicle">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteVehicleModal{{ v.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-4 border-0 shadow text-start">
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold text-danger">Delete Vehicle</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body py-4">
+                                                <p class="mb-1">Are you sure you want to permanently delete <strong>{{ v.name }}</strong> (ID #{{ v.id }})?</p>
+                                                <p class="text-muted small mb-0">If this vehicle has active reservations, deletion will be blocked to preserve booking integrity.</p>
+                                            </div>
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="POST" action="{{ url_for('admin.vehicle_delete', id=v.id) }}">
+                                                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Delete Permanently</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-car-front fs-1 d-block mb-2"></i>
+                                No vehicles found matching your criteria.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

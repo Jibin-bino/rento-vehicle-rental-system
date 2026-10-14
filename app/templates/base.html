@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rento - Rent. Ride. Repeat.{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark {% block nav_class %}bg-dark-brand sticky-top{% endblock %} py-3" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4 text-primary-brand" href="{{ url_for('main.index') }}">RENTO</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto fw-medium align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('vehicle.') %}active{% endif %}" href="{{ url_for('vehicle.index') }}">Vehicles</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('booking.') %}active{% endif %}" href="{{ url_for('booking.index') }}">My Bookings</a>
+                        </li>
+                        {% if current_user.role == 'ADMIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="bi bi-shield-lock me-1"></i> Admin Panel
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                        </li>
+                        <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
+                            <a class="btn btn-primary-brand px-4" href="{{ url_for('auth.register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer pt-5 pb-3">
+        <div class="container">
+            <div class="row gy-4 mb-4">
+                <!-- Left Section - Brand -->
+                <div class="col-lg-4 col-md-12">
+                    <h4 class="fw-bold text-primary-brand mb-1">RENTO</h4>
+                    <p class="text-secondary fw-semibold mb-3">Rent. Ride. Repeat.</p>
+                    <p class="text-secondary small pe-lg-4">Your trusted platform for finding and renting the right vehicle for your journey.</p>
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="#" class="text-secondary footer-social-icon"><i class="bi bi-github fs-5"></i></a>
+                        <a href="#" class="text-secondary footer-social-icon"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="#" class="text-secondary footer-social-icon"><i class="bi bi-linkedin fs-5"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-4 col-6">
+                    <h6 class="text-white fw-bold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled footer-links small">
+                        <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                        <li><a href="{{ url_for('vehicle.index') }}">Vehicles</a></li>
+                        <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                        <li><a href="{{ url_for('booking.index') }}">My Bookings</a></li>
+                    </ul>
+                </div>
+
+                <!-- Vehicles -->
+                <div class="col-lg-3 col-md-4 col-6">
+                    <h6 class="text-white fw-bold mb-3">Vehicles</h6>
+                    <ul class="list-unstyled footer-links small">
+                        <li><a href="#">Sedan</a></li>
+                        <li><a href="#">SUV</a></li>
+                        <li><a href="#">Scooter</a></li>
+                        <li><a href="#">Sports Bike</a></li>
+                        <li><a href="#">Van</a></li>
+                        <li><a href="#">Traveller</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div class="col-lg-3 col-md-4 col-12">
+                    <h6 class="text-white fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled footer-links small">
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="border-secondary mb-3">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <span class="text-white fw-bold">RENTO</span> <span class="text-secondary small">| Rent. Ride. Repeat.</span>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="text-secondary small mb-1">&copy; 2026 Rento. All rights reserved.</p>
+                    <p class="text-secondary small mb-0">Built with Python & Flask</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

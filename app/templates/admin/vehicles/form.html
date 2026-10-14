@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Rento Admin{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <div class="mb-4">
+        <a href="{{ url_for('admin.vehicles') }}" class="text-decoration-none text-muted fw-semibold small">
+            <i class="bi bi-arrow-left me-1"></i> Back to Vehicles Fleet
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+                <div class="card-header bg-dark-brand p-4 text-white">
+                    <h3 class="fw-bold mb-1">{{ title }}</h3>
+                    <p class="text-white-50 small mb-0">Fill in vehicle specifications, pricing, and availability details</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {{ form.csrf_token }}
+
+                        <div class="row g-4">
+                            <!-- Basic Information -->
+                            <div class="col-12">
+                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">General Information</h5>
+                            </div>
+
+                            <div class="col-md-4">
+                                {{ form.name.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.name(class="form-control p-3 bg-light border-0", placeholder="e.g. Honda City") }}
+                                {% for error in form.name.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-4">
+                                {{ form.brand.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.brand(class="form-control p-3 bg-light border-0", placeholder="e.g. Honda") }}
+                                {% for error in form.brand.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-4">
+                                {{ form.model.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.model(class="form-control p-3 bg-light border-0", placeholder="e.g. City") }}
+                                {% for error in form.model.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Classification & Pricing -->
+                            <div class="col-md-6">
+                                {{ form.category_id.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.category_id(class="form-select p-3 bg-light border-0") }}
+                                {% for error in form.category_id.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                {{ form.price_per_day.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.price_per_day(class="form-control p-3 bg-light border-0", placeholder="e.g. 1500") }}
+                                {% for error in form.price_per_day.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Technical Specs -->
+                            <div class="col-12 mt-4">
+                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Specifications & Location</h5>
+                            </div>
+
+                            <div class="col-md-3 col-sm-6">
+                                {{ form.fuel_type.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.fuel_type(class="form-select p-3 bg-light border-0") }}
+                            </div>
+
+                            <div class="col-md-3 col-sm-6">
+                                {{ form.transmission.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.transmission(class="form-select p-3 bg-light border-0") }}
+                            </div>
+
+                            <div class="col-md-3 col-sm-6">
+                                {{ form.seats.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.seats(class="form-control p-3 bg-light border-0", placeholder="e.g. 5") }}
+                                {% for error in form.seats.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-3 col-sm-6">
+                                {{ form.location.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.location(class="form-control p-3 bg-light border-0", placeholder="e.g. Kochi") }}
+                                {% for error in form.location.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Status & Media -->
+                            <div class="col-md-6">
+                                {{ form.status.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.status(class="form-select p-3 bg-light border-0") }}
+                            </div>
+
+                            <div class="col-md-6">
+                                {{ form.image.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.image(class="form-control p-3 bg-light border-0", placeholder="e.g. honda-city.jpg") }}
+                                <span class="text-muted small">Available in static/images/vehicles/</span>
+                            </div>
+
+                            {% if is_edit and vehicle and vehicle.image %}
+                            <div class="col-12">
+                                <span class="text-muted small fw-semibold d-block mb-2">Current Image Preview:</span>
+                                <img src="{{ url_for('static', filename='images/vehicles/' + vehicle.image) }}" alt="{{ vehicle.name }}" class="rounded-3 shadow-sm border" style="max-height: 140px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                {{ form.description.label(class="form-label text-muted small fw-semibold") }}
+                                {{ form.description(class="form-control p-3 bg-light border-0", rows="4", placeholder="Enter vehicle overview, features, luggage capacity, condition...") }}
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                                <a href="{{ url_for('admin.vehicles') }}" class="btn btn-light rounded-pill px-4 py-2 fw-semibold">Cancel</a>
+                                <button type="submit" class="btn btn-primary-brand rounded-pill px-5 py-2 fw-bold">
+                                    <i class="bi bi-check2-circle me-1"></i> {{ 'Update Vehicle' if is_edit else 'Create Vehicle' }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Bookings - Rento Admin{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Bookings Management</h2>
+            <p class="text-secondary small mb-0">View all customer reservations, filter by booking or payment state, and update status</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">Total: {{ bookings|length }} Booking{{ 's' if bookings|length != 1 else '' }}</span>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light p-3 p-md-4 mb-4">
+        <form method="GET" action="{{ url_for('admin.bookings') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-semibold">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ search or '' }}" class="form-control bg-light border-0" placeholder="Booking #ID, customer, email, vehicle...">
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label text-muted small fw-semibold">Booking Status</label>
+                <select name="status" class="form-select bg-light border-0">
+                    <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Booking Statuses</option>
+                    <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Confirmed" {% if selected_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active (Ongoing)</option>
+                    <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Cancelled" {% if selected_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label text-muted small fw-semibold">Payment Status</label>
+                <select name="payment_status" class="form-select bg-light border-0">
+                    <option value="All" {% if selected_payment_status == 'All' or not selected_payment_status %}selected{% endif %}>All Payment Statuses</option>
+                    <option value="Paid" {% if selected_payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Pending" {% if selected_payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Refunded" {% if selected_payment_status == 'Refunded' %}selected{% endif %}>Refunded</option>
+                    <option value="Cancelled" {% if selected_payment_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="Failed" {% if selected_payment_status == 'Failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark fw-bold w-100 py-2">Filter</button>
+                {% if search or selected_status or selected_payment_status %}
+                    <a href="{{ url_for('admin.bookings') }}" class="btn btn-light border py-2" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+        <div class="table-responsive p-3 p-md-4">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="text-muted border-bottom small">
+                    <tr>
+                        <th class="border-0 pb-3">Booking ID</th>
+                        <th class="border-0 pb-3">Customer</th>
+                        <th class="border-0 pb-3">Vehicle</th>
+                        <th class="border-0 pb-3">Rental Dates</th>
+                        <th class="border-0 pb-3">Total Amount</th>
+                        <th class="border-0 pb-3">Booking Status</th>
+                        <th class="border-0 pb-3">Payment Status</th>
+                        <th class="border-0 pb-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% if bookings %}
+                        {% for b in bookings %}
+                        <tr>
+                            <td class="fw-bold text-dark">#{{ b.id }}</td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ b.user.name }}</div>
+                                <div class="text-muted small">{{ b.user.email }} (User #{{ b.user.id }})</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ b.vehicle.name }}</div>
+                                <div class="text-muted small">{{ b.vehicle.brand }} &bull; {{ b.vehicle.category.name if b.vehicle.category else 'Vehicle' }}</div>
+                            </td>
+                            <td class="small">
+                                <div class="fw-medium text-dark">{{ b.start_date.strftime('%b %d, %Y') }} &rarr; {{ b.return_date.strftime('%b %d, %Y') }}</div>
+                                <span class="text-muted">({{ b.total_days }} days)</span>
+                            </td>
+                            <td class="fw-bold text-dark">₹{{ "%.0f"|format(b.total_amount) }}</td>
+                            <td>
+                                {% set b_badge = 'warning' %}
+                                {% if b.booking_status in ['Confirmed', 'Active'] %}{% set b_badge = 'success' %}{% endif %}
+                                {% if b.booking_status == 'Cancelled' %}{% set b_badge = 'danger' %}{% endif %}
+                                {% if b.booking_status == 'Completed' %}{% set b_badge = 'secondary' %}{% endif %}
+                                <span class="badge bg-{{ b_badge }} rounded-pill px-3 py-2 fw-medium">{{ b.booking_status }}</span>
+                            </td>
+                            <td>
+                                {% set p_badge = 'warning' %}
+                                {% if b.payment_status == 'Paid' %}{% set p_badge = 'success' %}{% endif %}
+                                {% if b.payment_status == 'Refunded' %}{% set p_badge = 'info' %}{% endif %}
+                                {% if b.payment_status == 'Cancelled' %}{% set p_badge = 'secondary' %}{% endif %}
+                                {% if b.payment_status == 'Failed' %}{% set p_badge = 'danger' %}{% endif %}
+                                <span class="badge bg-{{ p_badge }} rounded-pill px-3 py-2 fw-medium">{{ b.payment_status }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2 align-items-center">
+                                    <a href="{{ url_for('admin.booking_details', id=b.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                                        Details
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-primary-brand rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#statusModal{{ b.id }}">
+                                        Status
+                                    </button>
+                                </div>
+
+                                <!-- Status Update Modal -->
+                                <div class="modal fade" id="statusModal{{ b.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered text-start">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <form method="POST" action="{{ url_for('admin.booking_update_status', id=b.id) }}">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title fw-bold text-dark">Update Booking #{{ b.id }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body py-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-muted small fw-semibold">Booking Status</label>
+                                                        <select name="booking_status" class="form-select bg-light border-0 p-3">
+                                                            <option value="Pending" {% if b.booking_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                            <option value="Confirmed" {% if b.booking_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                                                            <option value="Active" {% if b.booking_status == 'Active' %}selected{% endif %}>Active (In Progress)</option>
+                                                            <option value="Completed" {% if b.booking_status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                            <option value="Cancelled" {% if b.booking_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-muted small fw-semibold">Payment Status</label>
+                                                        <select name="payment_status" class="form-select bg-light border-0 p-3">
+                                                            <option value="Pending" {% if b.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                            <option value="Paid" {% if b.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                                            <option value="Refunded" {% if b.payment_status == 'Refunded' %}selected{% endif %}>Refunded</option>
+                                                            <option value="Cancelled" {% if b.payment_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                                            <option value="Failed" {% if b.payment_status == 'Failed' %}selected{% endif %}>Failed</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="alert alert-light border rounded-3 small text-muted mb-0">
+                                                        <i class="bi bi-info-circle me-1"></i> Marking as Cancelled with Paid status will automatically process a refund.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary-brand rounded-pill px-4 fw-bold">Save Status</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                                No bookings found matching the selected filters.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

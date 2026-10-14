@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Booking #{{ booking.id }} - Rento Admin{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <!-- Breadcrumbs -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none text-muted fw-semibold small">
+            <i class="bi bi-speedometer2 me-1"></i> Admin Dashboard
+        </a>
+        <span class="text-muted small">&bull;</span>
+        <a href="{{ url_for('admin.bookings') }}" class="text-decoration-none text-muted fw-semibold small">
+            <i class="bi bi-calendar-check me-1"></i> Manage Bookings
+        </a>
+        <span class="text-muted small">&bull;</span>
+        <span class="text-dark fw-bold small">Booking #{{ booking.id }}</span>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+                <!-- Header Banner -->
+                <div class="bg-dark-brand p-4 p-md-5 text-white">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h2 class="fw-bold mb-0">Booking #{{ booking.id }}</h2>
+                                <span class="badge bg-light text-dark px-3 py-1 rounded-pill small">Customer: {{ booking.user.name }}</span>
+                            </div>
+                            <p class="text-white-50 mb-0 small">Created on {{ booking.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% set b_badge = 'warning' %}
+                            {% if booking.booking_status in ['Confirmed', 'Active'] %}{% set b_badge = 'success' %}{% endif %}
+                            {% if booking.booking_status == 'Cancelled' %}{% set b_badge = 'danger' %}{% endif %}
+                            {% if booking.booking_status == 'Completed' %}{% set b_badge = 'secondary' %}{% endif %}
+                            <span class="badge bg-{{ b_badge }} fs-6 rounded-pill px-3 py-2">
+                                Booking: {{ booking.booking_status }}
+                            </span>
+
+                            {% set p_badge = 'warning' %}
+                            {% if booking.payment_status == 'Paid' %}{% set p_badge = 'success' %}{% endif %}
+                            {% if booking.payment_status == 'Refunded' %}{% set p_badge = 'info' %}{% endif %}
+                            {% if booking.payment_status == 'Cancelled' %}{% set p_badge = 'secondary' %}{% endif %}
+                            {% if booking.payment_status == 'Failed' %}{% set p_badge = 'danger' %}{% endif %}
+                            <span class="badge bg-{{ p_badge }} fs-6 rounded-pill px-3 py-2">
+                                Payment: {{ booking.payment_status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row g-4">
+                        <!-- Left Column: Customer & Vehicle -->
+                        <div class="col-md-6">
+                            <!-- Customer Info -->
+                            <div class="p-4 bg-light rounded-4 mb-4">
+                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                    <i class="bi bi-person me-2 text-primary-brand"></i> Customer Profile
+                                </h6>
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Full Name</span>
+                                    <span class="fw-semibold text-dark">{{ booking.user.name }}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Email Address</span>
+                                    <span class="fw-semibold text-dark">{{ booking.user.email }}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Phone</span>
+                                    <span class="fw-semibold text-dark">{{ booking.user.phone or 'Not provided' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted small d-block">Account Database ID</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1">User #{{ booking.user.id }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Vehicle Info -->
+                            <div class="p-4 bg-light rounded-4">
+                                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                    <h6 class="fw-bold text-dark mb-0">
+                                        <i class="bi bi-car-front me-2 text-primary-brand"></i> Reserved Vehicle
+                                    </h6>
+                                    <a href="{{ url_for('admin.vehicle_edit', id=booking.vehicle.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-2">Edit</a>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    {% if booking.vehicle.image %}
+                                        <img src="{{ url_for('static', filename='images/vehicles/' + booking.vehicle.image) }}" alt="{{ booking.vehicle.name }}" class="rounded-3 shadow-sm border" style="width: 80px; height: 60px; object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-0">{{ booking.vehicle.name }}</h6>
+                                        <div class="text-muted small">{{ booking.vehicle.brand }} &bull; {{ booking.vehicle.model }}</div>
+                                    </div>
+                                </div>
+                                <div class="row g-2 small text-muted">
+                                    <div class="col-6">Seats: <strong class="text-dark">{{ booking.vehicle.seats }}</strong></div>
+                                    <div class="col-6">Fuel: <strong class="text-dark">{{ booking.vehicle.fuel_type }}</strong></div>
+                                    <div class="col-6">Trans: <strong class="text-dark">{{ booking.vehicle.transmission }}</strong></div>
+                                    <div class="col-6">Location: <strong class="text-dark">{{ booking.vehicle.location }}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Rental Period & Status Controls -->
+                        <div class="col-md-6">
+                            <!-- Rental Period -->
+                            <div class="p-4 bg-light rounded-4 mb-4">
+                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                    <i class="bi bi-calendar-range me-2 text-primary-brand"></i> Rental & Pricing
+                                </h6>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Start Date:</span>
+                                    <strong class="text-dark">{{ booking.start_date.strftime('%B %d, %Y') }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Return Date:</span>
+                                    <strong class="text-dark">{{ booking.return_date.strftime('%B %d, %Y') }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Duration:</span>
+                                    <strong class="text-dark">{{ booking.total_days }} day{{ 's' if booking.total_days > 1 else '' }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Rate / Day:</span>
+                                    <strong class="text-dark">₹{{ "%.0f"|format(booking.price_per_day) }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
+                                    <span class="fw-bold text-dark">Total Amount:</span>
+                                    <span class="fw-bold text-primary-brand fs-4">₹{{ "%.0f"|format(booking.total_amount) }}</span>
+                                </div>
+
+                                <!-- Dedicated Payment Status Visibility for Admin -->
+                                <div class="mt-3 pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted small fw-semibold">Payment Status:</span>
+                                        <span class="badge bg-{{ p_badge }} px-3 py-1 rounded-pill fw-bold">{{ booking.payment_status }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
+                                        <span class="text-muted">Payment Reference:</span>
+                                        <span class="font-monospace fw-bold text-dark">
+                                            {{ booking.payment.payment_reference if (booking.payment and booking.payment.payment_reference) else 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
+                                        <span class="text-muted">Payment Date:</span>
+                                        <span class="text-dark fw-medium">
+                                            {% if booking.payment and booking.payment.paid_at %}
+                                                {{ booking.payment.paid_at.strftime('%B %d, %Y %I:%M %p') }}
+                                            {% elif booking.payment_status == 'Paid' %}
+                                                {{ booking.created_at.strftime('%B %d, %Y %I:%M %p') }}
+                                            {% else %}
+                                                <span class="text-muted fst-italic">Pending</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center small">
+                                        <span class="text-muted">Gateway:</span>
+                                        <span class="badge bg-light text-muted border">Sandbox HMAC-SHA256</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Admin Status Management Form -->
+                            <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-4 p-4">
+                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                    <i class="bi bi-gear me-2 text-primary-brand"></i> Administrative Status Controls
+                                </h6>
+                                <form method="POST" action="{{ url_for('admin.booking_update_status', id=booking.id) }}">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-semibold">Update Booking Status</label>
+                                        <select name="booking_status" class="form-select bg-white border">
+                                            <option value="Pending" {% if booking.booking_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Confirmed" {% if booking.booking_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                                            <option value="Active" {% if booking.booking_status == 'Active' %}selected{% endif %}>Active (In Progress)</option>
+                                            <option value="Completed" {% if booking.booking_status == 'Completed' %}selected{% endif %}>Completed</option>
+                                            <option value="Cancelled" {% if booking.booking_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-semibold">Update Payment Status</label>
+                                        <select name="payment_status" class="form-select bg-white border">
+                                            <option value="Pending" {% if booking.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Paid" {% if booking.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                            <option value="Refunded" {% if booking.payment_status == 'Refunded' %}selected{% endif %}>Refunded</option>
+                                            <option value="Cancelled" {% if booking.payment_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                            <option value="Failed" {% if booking.payment_status == 'Failed' %}selected{% endif %}>Failed</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary-brand w-100 py-2 fw-bold">
+                                        <i class="bi bi-check2-circle me-1"></i> Apply Status Update
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

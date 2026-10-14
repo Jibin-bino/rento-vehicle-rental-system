@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - Rento{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-3">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold text-dark mb-0">My Bookings</h2>
+                <span class="badge bg-primary-brand text-white rounded-pill px-3 py-1">{{ bookings|length }}</span>
+            </div>
+            <p class="text-secondary small mb-0 mt-1">
+                Displaying all reservations for <strong>{{ current_user.name }}</strong> (User ID #{{ current_user.id }})
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-dark px-3 py-2 fw-semibold">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary-brand px-3 py-2 fw-bold">
+                <i class="bi bi-plus-circle me-1"></i> New Booking
+            </a>
+        </div>
+    </div>
+    
+    {% if bookings %}
+        <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+            <div class="table-responsive p-3 p-md-4">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="text-muted border-bottom">
+                        <tr>
+                            <th class="border-0 pb-3">Booking ID</th>
+                            <th class="border-0 pb-3">Vehicle</th>
+                            <th class="border-0 pb-3">Rental Dates</th>
+                            <th class="border-0 pb-3">Total Amount</th>
+                            <th class="border-0 pb-3">Booking Status</th>
+                            <th class="border-0 pb-3">Payment Status</th>
+                            <th class="border-0 pb-3 text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="fw-bold text-dark">#{{ booking.id }}</td>
+                            <td>
+                                <div>
+                                    <a href="{{ url_for('vehicle.details', id=booking.vehicle.id) }}" class="fw-bold text-dark text-decoration-none">
+                                        {{ booking.vehicle.brand }} {{ booking.vehicle.model }}
+                                    </a>
+                                    <div class="text-muted small">{{ booking.vehicle.location }} &bull; {{ booking.vehicle.seats }} seats</div>
+                                </div>
+                            </td>
+                            <td class="text-secondary small">
+                                <span class="fw-medium text-dark">{{ booking.start_date.strftime('%b %d, %Y') }}</span> &rarr;
+                                <span class="fw-medium text-dark">{{ booking.return_date.strftime('%b %d, %Y') }}</span>
+                                <div class="text-muted">({{ booking.total_days }} day{{ 's' if booking.total_days > 1 else '' }})</div>
+                            </td>
+                            <td class="fw-bold text-dark">₹{{ "%.0f"|format(booking.total_amount) }}</td>
+                            <td>
+                                {% set badge_color = 'warning' %}
+                                {% if booking.booking_status in ['Confirmed', 'Active'] %}{% set badge_color = 'success' %}{% endif %}
+                                {% if booking.booking_status == 'Cancelled' %}{% set badge_color = 'danger' %}{% endif %}
+                                {% if booking.booking_status == 'Completed' %}{% set badge_color = 'secondary' %}{% endif %}
+                                <span class="badge bg-{{ badge_color }} rounded-pill px-3 py-2 fw-medium">{{ booking.booking_status }}</span>
+                            </td>
+                            <td>
+                                {% set p_badge = 'warning' %}
+                                {% if booking.payment_status == 'Paid' %}{% set p_badge = 'success' %}{% endif %}
+                                {% if booking.payment_status == 'Refunded' %}{% set p_badge = 'info' %}{% endif %}
+                                {% if booking.payment_status == 'Cancelled' %}{% set p_badge = 'secondary' %}{% endif %}
+                                {% if booking.payment_status == 'Failed' %}{% set p_badge = 'danger' %}{% endif %}
+                                <span class="badge bg-{{ p_badge }} rounded-pill px-3 py-2 fw-medium">{{ booking.payment_status }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2 align-items-center">
+                                    <a href="{{ url_for('booking.details', id=booking.id) }}" class="btn btn-sm btn-outline-dark fw-semibold px-3 rounded-pill">
+                                        Details
+                                    </a>
+                                    {% if booking.payment_status == 'Pending' and booking.booking_status != 'Cancelled' %}
+                                        <a href="{{ url_for('booking.checkout', id=booking.id) }}" class="btn btn-sm btn-primary-brand fw-bold px-3 rounded-pill">
+                                            Pay Now
+                                        </a>
+                                    {% endif %}
+                                    {% if booking.booking_status in ['Pending', 'Confirmed'] %}
+                                        <form method="POST" action="{{ url_for('booking.cancel', id=booking.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel booking #{{ booking.id }}?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold px-2 rounded-pill" title="Cancel Booking">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+            <i class="bi bi-calendar-x text-muted mb-3" style="font-size: 3rem;"></i>
+            <h4 class="text-secondary fw-semibold">No bookings found.</h4>
+            <p class="text-muted mb-4">You haven't rented any vehicles yet under your account.</p>
+            <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary-brand px-4 py-2 fw-bold">Browse Vehicles</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

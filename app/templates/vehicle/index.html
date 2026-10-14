@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Our Vehicles - Rento{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-4">
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-dark mb-2">Our Fleet</h2>
+            <p class="text-secondary fs-5 mb-0">Find the perfect vehicle for your next adventure.</p>
+        </div>
+    </div>
+
+    <!-- Search/Filter Bar -->
+    <div class="bg-light p-4 rounded-4 shadow-sm mb-5 border">
+        <form class="row g-3 align-items-end" action="{{ url_for('vehicle.index') }}" method="GET">
+            <div class="col-md-3">
+                <label for="pickup" class="form-label fw-bold small text-uppercase">Location</label>
+                <select id="pickup" name="location" class="form-select p-3 border-0 shadow-sm">
+                    <option value="" {% if not location %}selected{% endif %}>All Locations</option>
+                    <option value="Kochi" {% if location == 'Kochi' %}selected{% endif %}>Kochi</option>
+                    <option value="Mumbai" {% if location == 'Mumbai' %}selected{% endif %}>Mumbai</option>
+                    <option value="Delhi" {% if location == 'Delhi' %}selected{% endif %}>Delhi</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="start_date" class="form-label fw-bold small text-uppercase">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-control p-3 border-0 shadow-sm" value="{{ start_date or '' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="return_date" class="form-label fw-bold small text-uppercase">Return Date</label>
+                <input type="date" id="return_date" name="return_date" class="form-control p-3 border-0 shadow-sm" value="{{ return_date or '' }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary-brand w-100 p-3 fw-bold">UPDATE SEARCH</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        {% for vehicle in vehicles %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card vehicle-card h-100 border-0 shadow-sm rounded-4 d-flex flex-column bg-white">
+                <div class="card-body p-4 d-flex flex-column flex-grow-1">
+                    <!-- Top Section: Vehicle Name, Brand, Category Badge -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark mb-1">{{ vehicle.name }}</h5>
+                            <span class="text-secondary small fw-medium">{{ vehicle.brand }}</span>
+                        </div>
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-medium">{{ vehicle.category.name if vehicle.category else 'Vehicle' }}</span>
+                    </div>
+
+                    <!-- Price per day -->
+                    <div class="my-3">
+                        <span class="fs-4 fw-bold text-primary-brand">₹{{ "%.0f"|format(vehicle.price_per_day) }}</span>
+                        <span class="text-secondary small fw-normal">/day</span>
+                    </div>
+
+                    <!-- Relevant Specifications -->
+                    <div class="row g-3 py-3 border-top border-bottom mb-4">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center text-secondary small fw-medium">
+                                <i class="bi bi-people me-2 fs-5 text-primary-brand"></i> {{ vehicle.seats }} Seats
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center text-secondary small fw-medium">
+                                <i class="bi bi-fuel-pump me-2 fs-5 text-primary-brand"></i> {{ vehicle.fuel_type }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center text-secondary small fw-medium">
+                                <i class="bi bi-gear me-2 fs-5 text-primary-brand"></i> {{ vehicle.transmission }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center text-secondary small fw-medium">
+                                <i class="bi bi-geo-alt me-2 fs-5 text-primary-brand"></i> {{ vehicle.location }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View Details Button -->
+                    <div class="mt-auto">
+                        <a href="{{ url_for('vehicle.details', id=vehicle.id) }}" class="btn btn-outline-dark w-100 fw-bold rounded-3 py-2">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-car-front text-muted mb-3" style="font-size: 4rem;"></i>
+            <h4 class="text-secondary fw-semibold">No vehicles currently available.</h4>
+            <p class="text-muted">Check back later or contact support.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

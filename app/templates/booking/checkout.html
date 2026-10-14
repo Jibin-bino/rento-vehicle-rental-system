@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Sandbox Payment - Booking #{{ booking.id }} - Rento{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-3">
+    <!-- Breadcrumbs -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('booking.details', id=booking.id) }}" class="text-decoration-none text-muted fw-semibold small">
+            <i class="bi bi-arrow-left me-1"></i> Back to Booking #{{ booking.id }}
+        </a>
+        <span class="text-muted small">&bull;</span>
+        <span class="text-dark fw-bold small">Payment Checkout</span>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Sandbox Gateway Header Card -->
+            <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden mb-4">
+                <div class="bg-dark-brand p-4 text-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-brand text-white px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-shield-check me-1"></i> TEST SANDBOX GATEWAY
+                            </span>
+                            <span class="text-white-50 small">HMAC Backend Verification</span>
+                        </div>
+                        <span class="badge bg-light text-dark px-3 py-1 rounded-pill small">Order #{{ payment_order.order_id }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- Order & Vehicle Summary -->
+                    <div class="p-3 bg-light rounded-4 mb-4 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Vehicle</span>
+                            <span class="fw-bold text-dark">{{ booking.vehicle.brand }} {{ booking.vehicle.model }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Rental Period</span>
+                            <span class="text-dark small">{{ booking.start_date.strftime('%b %d, %Y') }} &rarr; {{ booking.return_date.strftime('%b %d, %Y') }} ({{ booking.total_days }}d)</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Gateway Public Key</span>
+                            <span class="font-monospace text-muted small">{{ payment_order.key_id }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
+                            <span class="fw-bold text-dark fs-5">Amount Due</span>
+                            <span class="fw-bold text-primary-brand fs-3">₹{{ "%.0f"|format(booking.total_amount) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods Simulator Tabs -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3">Select Test Payment Method</h6>
+                        
+                        <ul class="nav nav-pills gap-2 mb-3" id="paymentTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active rounded-pill px-4 py-2 fw-semibold" id="card-tab" data-bs-toggle="pill" data-bs-target="#cardMethod" type="button">
+                                    <i class="bi bi-credit-card me-1"></i> Test Card
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link rounded-pill px-4 py-2 fw-semibold" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upiMethod" type="button">
+                                    <i class="bi bi-phone me-1"></i> Test UPI
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link rounded-pill px-4 py-2 fw-semibold" id="net-tab" data-bs-toggle="pill" data-bs-target="#netMethod" type="button">
+                                    <i class="bi bi-bank me-1"></i> NetBanking
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content p-4 bg-light rounded-4 border" id="paymentTabContent">
+                            <!-- Card Tab -->
+                            <div class="tab-pane fade show active" id="cardMethod" role="tabpanel">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-semibold">Sandbox Test Card Number</label>
+                                    <input type="text" class="form-control font-monospace p-3 bg-white" value="4111 2222 3333 4444" readonly>
+                                    <span class="text-muted small">Standard Visa test card for sandbox validation</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-semibold">Expiry Date</label>
+                                        <input type="text" class="form-control font-monospace p-3 bg-white" value="12 / 28" readonly>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-semibold">CVV</label>
+                                        <input type="text" class="form-control font-monospace p-3 bg-white" value="123" readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- UPI Tab -->
+                            <div class="tab-pane fade" id="upiMethod" role="tabpanel">
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small fw-semibold">Test Virtual Payment Address (VPA)</label>
+                                    <input type="text" class="form-control font-monospace p-3 bg-white" value="rento.customer@sandboxupi" readonly>
+                                </div>
+                                <span class="text-muted small">Auto-authorizes in sandbox simulator mode</span>
+                            </div>
+
+                            <!-- NetBanking Tab -->
+                            <div class="tab-pane fade" id="netMethod" role="tabpanel">
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small fw-semibold">Select Test Banking Portal</label>
+                                    <select class="form-select p-3 bg-white">
+                                        <option selected>HDFC Bank Sandbox Gateway</option>
+                                        <option>ICICI Bank Sandbox Gateway</option>
+                                        <option>State Bank of India (SBI) Sandbox</option>
+                                        <option>Axis Bank Sandbox Gateway</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flow Information Alert -->
+                    <div class="alert alert-secondary rounded-3 small text-muted mb-4">
+                        <i class="bi bi-info-circle me-1 text-primary-brand"></i>
+                        <strong>Secure Gateway Flow:</strong> When you submit payment, the sandbox gateway generates a cryptographic HMAC signature of <code>order_id</code> and <code>payment_id</code>. The backend verifies this signature using the server secret key before confirming the booking.
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <button type="button" id="paySuccessBtn" class="btn btn-primary-brand p-3 fw-bold flex-grow-1" onclick="submitSandboxPayment(false)">
+                            <i class="bi bi-shield-check me-1"></i> Pay ₹{{ "%.0f"|format(booking.total_amount) }} (Simulate Gateway Success)
+                        </button>
+                        <button type="button" id="payFailBtn" class="btn btn-outline-danger p-3 fw-semibold" onclick="submitSandboxPayment(true)">
+                            <i class="bi bi-x-circle me-1"></i> Simulate Decline
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('booking.details', id=booking.id) }}" class="text-decoration-none text-muted small fw-semibold">
+                            <i class="bi bi-arrow-left me-1"></i> Cancel and Return to Booking
+                        </a>
+                    </div>
+
+                    <div id="paymentStatusSpinner" class="text-center mt-4 d-none">
+                        <div class="spinner-border text-primary-brand" role="status"></div>
+                        <p class="text-muted small mt-2" id="spinnerText">Processing payment with sandbox gateway...</p>
+                    </div>
+
+                    <div id="paymentErrorAlert" class="alert alert-danger rounded-4 mt-4 d-none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function submitSandboxPayment(simulateFailure) {
+    const paySuccessBtn = document.getElementById('paySuccessBtn');
+    const payFailBtn = document.getElementById('payFailBtn');
+    const spinner = document.getElementById('paymentStatusSpinner');
+    const spinnerText = document.getElementById('spinnerText');
+    const errorAlert = document.getElementById('paymentErrorAlert');
+
+    paySuccessBtn.disabled = true;
+    payFailBtn.disabled = true;
+    errorAlert.classList.add('d-none');
+    spinner.classList.remove('d-none');
+
+    try {
+        spinnerText.textContent = '1/3 Connecting to Sandbox Payment Gateway...';
+        
+        // Gateway Authorization Processing
+        const gatewayResp = await fetch("{{ url_for('booking.process_gateway', id=booking.id) }}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                order_id: "{{ payment_order.order_id }}",
+                method: document.querySelector('#paymentTabs .active').textContent.trim(),
+                simulate_failure: simulateFailure
+            })
+        });
+
+        const gatewayData = await gatewayResp.json();
+
+        if (!gatewayResp.ok || !gatewayData.success) {
+            throw new Error(gatewayData.error || 'Payment declined by gateway.');
+        }
+
+        spinnerText.textContent = '2/3 Submitting payment result for Backend Cryptographic Verification...';
+        
+        // Backend Cryptographic Verification
+        const result = gatewayData.gateway_result;
+        const verifyResp = await fetch("{{ url_for('booking.verify_payment', id=booking.id) }}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                order_id: result.order_id,
+                payment_id: result.payment_id,
+                signature: result.signature
+            })
+        });
+
+        const verifyData = await verifyResp.json();
+
+        if (!verifyResp.ok || !verifyData.success) {
+            throw new Error(verifyData.error || 'Backend signature verification failed! Payment rejected.');
+        }
+
+        spinnerText.textContent = '3/3 Payment verified & booking confirmed! Redirecting...';
+        
+        // Redirect to booking details
+        setTimeout(() => {
+            window.location.href = "{{ url_for('booking.details', id=booking.id) }}";
+        }, 800);
+
+    } catch (err) {
+        spinner.classList.add('d-none');
+        paySuccessBtn.disabled = false;
+        payFailBtn.disabled = false;
+        errorAlert.innerHTML = `
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-exclamation-octagon-fill fs-5 text-danger flex-shrink-0 mt-1"></i>
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold mb-1">Transaction Failed / Declined</h6>
+                    <p class="mb-2 small">${err.message}</p>
+                    <div class="small text-muted mb-2">Payment status has been recorded as <strong>FAILED</strong> in the backend. Booking status remains <strong>PENDING</strong>.</div>
+                    <a href="{{ url_for('booking.details', id=booking.id) }}" class="btn btn-sm btn-outline-danger rounded-pill fw-semibold">
+                        View Booking Details &rarr;
+                    </a>
+                </div>
+            </div>
+        `;
+        errorAlert.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

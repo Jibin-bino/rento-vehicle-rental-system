@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Rento{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <!-- Header banner -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">System Overview</h2>
+            <p class="text-secondary small mb-0">Platform performance, fleet status, and business metrics</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.vehicle_add') }}" class="btn btn-primary-brand fw-bold px-3 py-2 rounded-pill">
+                <i class="bi bi-plus-lg me-1"></i> Add Vehicle
+            </a>
+            <a href="{{ url_for('admin.bookings') }}" class="btn btn-outline-dark fw-semibold px-3 py-2 rounded-pill">
+                <i class="bi bi-filter me-1"></i> Manage Bookings
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Vehicles</span>
+                    <div class="rounded-3 p-2 text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(59, 130, 246, 0.1);">
+                        <i class="bi bi-car-front fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ total_vehicles }}</h2>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>{{ active_vehicles }} Active</span>
+                    <a href="{{ url_for('admin.vehicles') }}" class="text-decoration-none">Manage &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Users</span>
+                    <div class="rounded-3 p-2 text-info d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(6, 182, 212, 0.1);">
+                        <i class="bi bi-people fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ total_users }}</h2>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Registered accounts</span>
+                    <a href="{{ url_for('admin.users') }}" class="text-decoration-none">Manage &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Bookings</span>
+                    <div class="rounded-3 p-2 text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(245, 158, 11, 0.1);">
+                        <i class="bi bi-calendar-check fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ total_bookings }}</h2>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span class="text-warning fw-medium">{{ pending_bookings }} Pending</span>
+                    <a href="{{ url_for('admin.bookings') }}" class="text-decoration-none">View All &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white border border-light">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Revenue</span>
+                    <div class="rounded-3 p-2 text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background-color: rgba(34, 197, 94, 0.1);">
+                        <i class="bi bi-currency-rupee fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">₹{{ "%.0f"|format(total_revenue) }}</h2>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span class="text-success fw-medium">Collected via payments</span>
+                    <span>All-time</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings and Users -->
+    <div class="row g-4">
+        <!-- Recent Bookings -->
+        <div class="col-lg-8">
+            <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden h-100">
+                <div class="card-header bg-white border-0 p-4 pb-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Recent Platform Bookings</h5>
+                        <span class="text-muted small">Latest reservations across all customers</span>
+                    </div>
+                    <a href="{{ url_for('admin.bookings') }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                        View All ({{ total_bookings }})
+                    </a>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    {% if recent_bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="text-muted border-bottom small">
+                                <tr>
+                                    <th class="border-0 py-2">ID</th>
+                                    <th class="border-0 py-2">Customer</th>
+                                    <th class="border-0 py-2">Vehicle</th>
+                                    <th class="border-0 py-2">Amount</th>
+                                    <th class="border-0 py-2">Status</th>
+                                    <th class="border-0 py-2 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in recent_bookings %}
+                                <tr>
+                                    <td class="fw-bold">#{{ b.id }}</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ b.user.name }}</div>
+                                        <span class="text-muted small">{{ b.user.email }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ b.vehicle.name }}</div>
+                                        <span class="text-muted small">{{ b.start_date.strftime('%b %d') }} - {{ b.return_date.strftime('%b %d') }}</span>
+                                    </td>
+                                    <td class="fw-bold text-dark">₹{{ "%.0f"|format(b.total_amount) }}</td>
+                                    <td>
+                                        {% set b_badge = 'warning' %}
+                                        {% if b.booking_status in ['Confirmed', 'Active'] %}{% set b_badge = 'success' %}{% endif %}
+                                        {% if b.booking_status == 'Cancelled' %}{% set b_badge = 'danger' %}{% endif %}
+                                        {% if b.booking_status == 'Completed' %}{% set b_badge = 'secondary' %}{% endif %}
+                                        <span class="badge bg-{{ b_badge }} rounded-pill px-2 py-1 small">{{ b.booking_status }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('admin.booking_details', id=b.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                            Manage
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                        No bookings recorded in the system yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registered Users -->
+        <div class="col-lg-4">
+            <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden h-100">
+                <div class="card-header bg-white border-0 p-4 pb-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">New Users</h5>
+                        <span class="text-muted small">Recently joined accounts</span>
+                    </div>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                        All Users
+                    </a>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    {% if recent_users %}
+                    <div class="list-group list-group-flush">
+                        {% for u in recent_users %}
+                        <div class="list-group-item border-0 px-0 py-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background-color: #18181B;">
+                                    {{ u.name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark mb-0">{{ u.name }}</div>
+                                    <div class="text-muted small">{{ u.email }}</div>
+                                </div>
+                            </div>
+                            <span class="badge {% if u.role == 'ADMIN' %}bg-primary-brand{% else %}bg-light text-dark border{% endif %} rounded-pill px-2 py-1 small">
+                                {{ u.role }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">No users found.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Rento Admin{% endblock %}
+
+{% block content %}
+{% include "admin/nav.html" %}
+
+<div class="container pb-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">User Accounts</h2>
+            <p class="text-secondary small mb-0">View registered users, monitor customer activity, and assign administrative roles</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">Total: {{ users|length }} User{{ 's' if users|length > 1 else '' }}</span>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light p-3 p-md-4 mb-4">
+        <form method="GET" action="{{ url_for('admin.users') }}" class="row g-3 align-items-end">
+            <div class="col-md-7">
+                <label class="form-label text-muted small fw-semibold">Search Users</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ search or '' }}" class="form-control bg-light border-0" placeholder="Search by name, email, or phone number...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-semibold">Role Filter</label>
+                <select name="role" class="form-select bg-light border-0">
+                    <option value="All" {% if selected_role == 'All' or not selected_role %}selected{% endif %}>All Roles</option>
+                    <option value="USER" {% if selected_role == 'USER' %}selected{% endif %}>Customer (USER)</option>
+                    <option value="ADMIN" {% if selected_role == 'ADMIN' %}selected{% endif %}>Administrator (ADMIN)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark fw-bold w-100 py-2">Filter</button>
+                {% if search or selected_role %}
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-light border py-2" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 rounded-4 shadow-sm bg-white border border-light overflow-hidden">
+        <div class="table-responsive p-3 p-md-4">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="text-muted border-bottom small">
+                    <tr>
+                        <th class="border-0 pb-3">User ID</th>
+                        <th class="border-0 pb-3">Customer Profile</th>
+                        <th class="border-0 pb-3">Contact Details</th>
+                        <th class="border-0 pb-3">Role</th>
+                        <th class="border-0 pb-3">Member Since</th>
+                        <th class="border-0 pb-3">Total Bookings</th>
+                        <th class="border-0 pb-3 text-end">Role Management</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% if users %}
+                        {% for u in users %}
+                        <tr>
+                            <td class="fw-bold text-dark">#{{ u.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 42px; height: 42px; background: {% if u.role == 'ADMIN' %}#18181B{% else %}#F97316{% endif %}; font-size: 1.1rem;">
+                                        {{ u.name[:1]|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ u.name }}</div>
+                                        <div class="text-muted small">{{ u.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small text-dark">
+                                    <i class="bi bi-envelope text-muted me-1"></i> {{ u.email }}
+                                </div>
+                                <div class="small text-muted">
+                                    <i class="bi bi-telephone text-muted me-1"></i> {{ u.phone or 'No phone added' }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if u.role == 'ADMIN' %}
+                                    <span class="badge bg-dark rounded-pill px-3 py-1">
+                                        <i class="bi bi-shield-check me-1 text-primary-brand"></i> ADMIN
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                        USER
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">
+                                {{ u.created_at.strftime('%b %d, %Y') }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-3 py-1 rounded-pill fw-semibold">
+                                    {{ u.bookings|length }} reservation{{ 's' if u.bookings|length != 1 else '' }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                {% if u.id != current_user.id %}
+                                    <form method="POST" action="{{ url_for('admin.user_toggle_role', id=u.id) }}" class="d-inline" onsubmit="return confirm('Change role for {{ u.name }} to {{ 'USER' if u.role == 'ADMIN' else 'ADMIN' }}?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                                            Make {{ 'Customer' if u.role == 'ADMIN' else 'Admin' }}
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small">Current User</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                No user accounts found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
