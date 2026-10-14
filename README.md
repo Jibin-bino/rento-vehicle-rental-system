@@ -26,6 +26,3 @@ A full-stack vehicle rental web application built using Python Flask.
 5. Initialize the database as documented.
 6. Run the application.
 
-## Screenshots
-Add screenshots of the homepage, vehicle listing,
-booking flow, and dashboard here.
