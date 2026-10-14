@@ -1,18 +1,23 @@
 
-# Python
-__pycache__/
-*.py[cod]
+# Python virtual environment
 venv/
 .venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
 
 # Environment secrets
 .env
 .env.*
 
-# Flask
+# Keep the example configuration
+!.env.example
+
+# Local database and instance files
 instance/
-*.sqlite3
 *.db
+*.sqlite3
 
 # IDE
 .vscode/
